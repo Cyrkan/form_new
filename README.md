@@ -1,56 +1,24 @@
 # Form Sender
 
-Це невелика програма для масової відправки заявок через форму:
+Програма для масової відправки заявок через форму `linkreclamatiogrwc.uk`.
 
-<https://linkreclamatiogrwc.uk/>
+## Запуск
 
-## Як запустити через Docker
+Потрібні Docker і Docker Compose.
 
-Потрібно, щоб на комп’ютері були встановлені Docker і Docker Compose.
+1. У папці проєкту виконайте `cp .env.example .env`.
+2. Відкрийте `.env` і вкажіть `TWOCAPTCHA_API_KEY`, `ADMIN_PASSWORD` та `SECRET_KEY`.
+3. Запустіть програму командою `docker compose up --build`.
+4. Відкрийте в браузері [http://localhost:5000](http://localhost:5000).
 
-Спочатку створіть файл налаштувань:
+Пароль для входу береться з `ADMIN_PASSWORD`.
 
-```bash
-cp .env.example .env
-```
+## Запуск без Docker
 
-Відкрийте `.env` і додайте свої значення:
+Створіть віртуальне середовище, встановіть залежності з `requirements.txt`, завантажте змінні з `.env` і запустіть `python app.py`.
 
-```env
-TWOCAPTCHA_API_KEY=ваш_ключ_2captcha
-ADMIN_PASSWORD=пароль_для_входу
-SECRET_KEY=будь-який_довгий_секрет
-```
-
-Після цього запустіть програму однією командою:
-
-```bash
-docker compose up --build
-```
-
-Відкрийте в браузері:
-
-<http://localhost:5000>
-
-Для входу використовуйте пароль, який вказали в `ADMIN_PASSWORD`.
-
-## Як запустити без Docker
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-set -a
-source .env
-set +a
-python app.py
-```
-
-Потім відкрийте <http://localhost:5000>.
+Після запуску відкрийте [http://localhost:5000](http://localhost:5000).
 
 ## Важливо
 
-- не залишайте порожнім `TWOCAPTCHA_API_KEY`, якщо потрібно відправляти заявки;
-- не додавайте файл `.env` у GitHub;
-- не показуйте API-ключ 2Captcha іншим людям.
+Не публікуйте `.env` і API-ключ 2Captcha у GitHub.
