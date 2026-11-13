@@ -287,7 +287,8 @@ def submit_one(target: str, submission_type: str, threat_type: str, reason: str,
         timeout=REQUEST_TIMEOUT_SECONDS,
         allow_redirects=True,
     )
-    response.raise_for_status()
+    if response.status_code >= 400:
+        raise RuntimeError(extract_remote_error(response.text, response.status_code))
     code = extract_confirmation_code(response.text)
     if not code:
         raise RuntimeError(extract_remote_error(response.text, response.status_code))
