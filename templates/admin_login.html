@@ -1,36 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — LinkReport</title>
-<style>
-  :root { --bg:#060a0f; --surface:#0d1320; --border:#1e2d42; --accent:#0ea5e9; --text:#e2e8f0; --text-muted:#64748b; --error:#ef4444; }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body { background:var(--bg); color:var(--text); font-family:-apple-system,system-ui,sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
-  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:40px; max-width:360px; width:100%; }
-  h1 { font-size:20px; font-weight:800; margin-bottom:6px; }
-  p { font-size:13px; color:var(--text-muted); margin-bottom:28px; }
-  label { display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); margin-bottom:7px; }
-  input[type=password] { width:100%; background:#060a0f; border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px 13px; font-size:14px; font-family:inherit; }
-  input:focus { outline:none; border-color:var(--accent); }
-  .flash { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); color:#fca5a5; border-radius:8px; padding:9px 13px; font-size:13px; margin-bottom:16px; }
-  button { width:100%; background:var(--accent); color:#fff; border:none; border-radius:8px; padding:11px; font-size:14px; font-weight:600; cursor:pointer; margin-top:16px; transition:opacity .15s; }
-  button:hover { opacity:.88; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вход — Form Sender</title>
+  <style>
+    :root { --bg:#08111f; --panel:#101d31; --field:#172942; --line:#2a4162; --text:#eff6ff; --muted:#9bb0ca; --accent:#48a7ff; --bad:#ff7b86; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; background:linear-gradient(135deg,#07101c,#0d1c31); color:var(--text); font:14px system-ui,-apple-system,sans-serif; }
+    .card { width:min(390px,calc(100% - 28px)); background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:28px; }
+    h1 { font-size:22px; margin:0 0 6px; }
+    p { color:var(--muted); margin:0 0 22px; }
+    label { display:block; color:var(--muted); font-size:12px; margin-bottom:7px; }
+    input { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:8px; background:var(--field); color:var(--text); font:inherit; }
+    input:focus { outline:2px solid rgba(72,167,255,.3); border-color:var(--accent); }
+    button { width:100%; margin-top:16px; padding:11px; border:0; border-radius:8px; background:linear-gradient(135deg,#238ce0,#5d6cff); color:#fff; font-weight:700; cursor:pointer; }
+    .error { color:var(--bad); background:rgba(255,123,134,.1); border:1px solid rgba(255,123,134,.25); border-radius:8px; padding:9px 11px; margin-bottom:16px; }
+  </style>
 </head>
 <body>
-<div class="card">
-  <h1>🔐 Admin Panel</h1>
-  <p>Enter the admin password to access the dashboard.</p>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for _, message in messages %}<div class="flash">{{ message }}</div>{% endfor %}
-  {% endwith %}
-  <form method="POST">
-    <label>Password</label>
-    <input type="password" name="password" autofocus required placeholder="••••••••">
-    <button type="submit">Sign In →</button>
-  </form>
-</div>
+  <main class="card">
+    <h1>🛡 Form Sender</h1>
+    <p>Войдите, чтобы открыть инструмент массовой отправки.</p>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="post">
+      <label for="password">Пароль оператора</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+      <button type="submit">Войти</button>
+    </form>
+  </main>
 </body>
 </html>

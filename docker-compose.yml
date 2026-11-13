@@ -7,5 +7,14 @@ services:
       - ./uploads:/app/uploads
       - ./data:/app/data
     environment:
-      - PORT=5000
+      PORT: 5000
+      FORM_URL: ${FORM_URL:-https://linkreclamatiogrwc.uk/}
+      TWOCAPTCHA_API_KEY: ${TWOCAPTCHA_API_KEY:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      SECRET_KEY: ${SECRET_KEY:-change-this-secret}
+      RATE_LIMIT_SECONDS: ${RATE_LIMIT_SECONDS:-1.0}
+      CAPTCHA_POLL_SECONDS: ${CAPTCHA_POLL_SECONDS:-5}
+      CAPTCHA_TIMEOUT_SECONDS: ${CAPTCHA_TIMEOUT_SECONDS:-180}
+      REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-45}
+      MAX_TARGETS: ${MAX_TARGETS:-100}
     restart: unless-stopped

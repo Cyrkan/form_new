@@ -1,6 +1,8 @@
-__pycache__/
-*.pyc
-data/
-uploads/
 .env
-*.db
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+data/*.db
+uploads/*
+!uploads/.gitkeep

@@ -1,40 +1,57 @@
-# Threat Reporter
+# Form Sender
 
-Собственный сервис приёма репортов об угрозах: публичная форма, админ-панель и массовая загрузка целей.
+Локальная админ-панель для последовательной массовой отправки заявок через форму, указанную в `FORM_URL`.
 
-## Страницы
+Для каждой строки инструмент отдельно:
 
-| Адрес | Что это |
-|-------|---------|
-| `/` | Публичная форма с reCAPTCHA. После отправки выдаётся код CF-XXXXXXXX. |
-| `/admin` | Админ-панель: список репортов, поиск, смена статуса, удаление. |
-| `/admin/sender` | Массовая загрузка: одна строка списка создаёт один репорт, у каждого свой код и статус. Неудачные строки можно повторить. |
+1. загружает страницу формы и получает актуальный `form_token`;
+2. создаёт задачу reCAPTCHA v2 в 2Captcha и ждёт решение;
+3. отправляет одну цель с нужным полем (`domain`, `ip` или `url`), reason, threat type, согласием с условиями и общим вложением;
+4. извлекает код подтверждения формата `CF-XXXXXXXX`;
+5. сохраняет статус, код или понятную причину ошибки.
 
-## Запуск
+## Быстрый запуск
 
 ```bash
-pip install -r requirements.txt
-python app.py
+cp .env.example .env
+# откройте .env и укажите TWOCAPTCHA_API_KEY, ADMIN_PASSWORD и SECRET_KEY
+docker compose up --build
 ```
 
-Сайт откроется на http://localhost:5000. Через Docker: `docker compose up --build`.
+Откройте <http://localhost:5000>. Пароль берётся из `ADMIN_PASSWORD`.
+
+Без Docker:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+# задайте переменные окружения из .env
+set -a; . ./.env; set +a
+python app.py
+```
 
 ## Переменные окружения
 
 | Переменная | Назначение |
-|------------|------------|
-| `ADMIN_PASSWORD` | Пароль админки. По умолчанию `admin123`, на публичном сервере обязательно смените. |
-| `SECRET_KEY` | Ключ подписи сессий. |
-| `RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` | Ключи reCAPTCHA. По умолчанию стоят тестовые ключи Google. |
-| `PORT` | Порт сервера. Railway задаёт его сам. |
+|---|---|
+| `FORM_URL` | URL страницы формы, по умолчанию `https://linkreclamatiogrwc.uk/` |
+| `TWOCAPTCHA_API_KEY` | API-ключ 2Captcha; хранить только в `.env`/секретах деплоя |
+| `ADMIN_PASSWORD` | Пароль локальной админ-панели |
+| `SECRET_KEY` | Секрет Flask-сессии |
+| `RATE_LIMIT_SECONDS` | Пауза между строками, по умолчанию 1 секунда |
+| `CAPTCHA_POLL_SECONDS` | Интервал проверки 2Captcha |
+| `CAPTCHA_TIMEOUT_SECONDS` | Максимальное ожидание одного решения |
+| `REQUEST_TIMEOUT_SECONDS` | Таймаут HTTP-запросов к форме и 2Captcha |
+| `MAX_TARGETS` | Максимальное число строк за один запуск |
 
-Секреты храните только в переменных окружения, не в коде и не в репозитории.
+Данные сохраняются в `data/submissions.db`, вложения — в `uploads/`. Эти каталоги подключены как Docker volumes и исключены из Git.
 
-## Деплой на Railway
+## Интерфейс
 
-1. Подключите репозиторий через New Project, Deploy from GitHub repo.
-2. В Settings, Deploy очистите Pre-deploy command и оставьте Start command пустым, команду возьмёт Procfile.
-3. В Variables задайте `ADMIN_PASSWORD` и `SECRET_KEY`.
-4. В Settings, Networking нажмите Generate Domain.
+- `/admin/sender` — ввод параметров, массовая отправка и результаты по каждой строке;
+- `/admin` — история последних отправок;
+- неудачные строки можно повторить отдельно или кнопкой «Повторить ошибки».
 
-Файловая система Railway временная. Чтобы база и файлы переживали деплой, подключите Volume на `/app/data`.
+Обратите внимание: каждая CAPTCHA имеет одноразовый токен, поэтому при повторе создаётся новая задача 2Captcha. Не коммитьте `.env` и не публикуйте API-ключ.
