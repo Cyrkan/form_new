@@ -1,56 +1,56 @@
 # Form Sender
 
-Тулза для масової відправки заявок через форму `https://linkreclamatiogrwc.uk/`.
+Це невелика тулза для масової відправки заявок через форму:
 
-## Запуск через Docker Compose
+<https://linkreclamatiogrwc.uk/>
 
-Потрібні встановлені Docker і Docker Compose.
+## Як запустити через Docker
 
-1. Створіть файл налаштувань:
+Потрібно, щоб на комп’ютері були встановлені Docker і Docker Compose.
+
+Спочатку створіть файл налаштувань:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Відкрийте `.env` і вкажіть:
+Відкрийте `.env` і додайте свої значення:
 
 ```env
 TWOCAPTCHA_API_KEY=ваш_ключ_2captcha
-ADMIN_PASSWORD=пароль_оператора
-SECRET_KEY=довгий_випадковий_секрет
+ADMIN_PASSWORD=пароль_для_входу
+SECRET_KEY=будь-який_довгий_секрет
 ```
 
-3. Запустіть однією командою:
+Після цього запустіть програму однією командою:
 
 ```bash
 docker compose up --build
 ```
 
-4. Відкрийте в браузері:
+Відкрийте в браузері:
 
 <http://localhost:5000>
 
-Для входу використовуйте пароль з `ADMIN_PASSWORD`.
+Для входу використовуйте пароль, який вказали в `ADMIN_PASSWORD`.
 
-## Запуск без Docker
+## Як запустити без Docker
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-set -a; . ./.env; set +a
+set -a
+source .env
+set +a
 python app.py
 ```
 
-Після запуску відкрийте <http://localhost:5000>.
+Потім відкрийте <http://localhost:5000>.
 
-## Змінні середовища
+## Важливо
 
-- `FORM_URL` — URL зовнішньої форми;
-- `TWOCAPTCHA_API_KEY` — API-ключ 2Captcha;
-- `ADMIN_PASSWORD` — пароль оператора;
-- `SECRET_KEY` — секрет Flask-сесії;
-- `MAX_TARGETS` — максимальна кількість цілей за один запуск.
-
-Не публікуйте файл `.env` і API-ключ 2Captcha у GitHub.
+- не залишайте порожнім `TWOCAPTCHA_API_KEY`, якщо потрібно відправляти заявки;
+- не додавайте файл `.env` у GitHub;
+- не показуйте API-ключ 2Captcha іншим людям.
