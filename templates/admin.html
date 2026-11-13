@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — LinkReport</title>
+<style>
+  :root { --bg:#060a0f; --surface:#0d1320; --surface2:#111827; --border:#1e2d42; --accent:#0ea5e9; --text:#e2e8f0; --text-muted:#64748b; --success:#22c55e; --warning:#f59e0b; --error:#ef4444; --radius:8px; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,'Inter',system-ui,sans-serif; font-size:14px; }
+
+  nav { background:var(--surface); border-bottom:1px solid var(--border); padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between; }
+  nav h1 { font-size:16px; font-weight:700; }
+  nav .right { display:flex; align-items:center; gap:16px; }
+  nav .right span { font-size:12px; color:var(--text-muted); }
+  nav a { color:var(--text-muted); font-size:13px; text-decoration:none; }
+  nav a:hover { color:var(--text); }
+
+  .container { max-width:1200px; margin:0 auto; padding:28px 24px; }
+
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; }
+  .stat-card .num { font-size:32px; font-weight:800; }
+  .stat-card .lbl { font-size:12px; color:var(--text-muted); margin-top:4px; }
+  .stat-card.accent .num { color:var(--accent); }
+  .stat-card.warn .num { color:var(--warning); }
+  .stat-card.ok .num { color:var(--success); }
+
+  .toolbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .toolbar input { background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:var(--radius); padding:8px 12px; font-size:13px; font-family:inherit; min-width:220px; }
+  .toolbar input:focus { outline:none; border-color:var(--accent); }
+  .toolbar select { background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:var(--radius); padding:8px 12px; font-size:13px; font-family:inherit; appearance:none; padding-right:28px; }
+
+  table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  thead { background:var(--surface2); }
+  th { padding:10px 14px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap; }
+  td { padding:11px 14px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,.02); }
+
+  .chip { display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.4px; }
+  .chip.new { background:rgba(14,165,233,.12); color:var(--accent); border:1px solid rgba(14,165,233,.25); }
+  .chip.reviewed { background:rgba(34,197,94,.12); color:var(--success); border:1px solid rgba(34,197,94,.25); }
+  .chip.rejected { background:rgba(239,68,68,.12); color:var(--error); border:1px solid rgba(239,68,68,.25); }
+
+  .target-cell { font-family:monospace; font-size:12px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .code-cell { font-family:monospace; font-size:12px; color:var(--success); }
+
+  .actions { display:flex; gap:6px; align-items:center; }
+  .actions form { display:inline; }
+  .btn-sm { background:none; border:1px solid var(--border); color:var(--text-muted); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; transition:all .15s; white-space:nowrap; }
+  .btn-sm:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-sm.danger:hover { border-color:var(--error); color:var(--error); }
+  .btn-sm.ok:hover { border-color:var(--success); color:var(--success); }
+
+  .file-link { color:var(--accent); text-decoration:none; font-size:11px; }
+  .file-link:hover { text-decoration:underline; }
+
+  .empty { text-align:center; padding:60px; color:var(--text-muted); font-size:13px; }
+
+  @media(max-width:768px) { .stats { grid-template-columns:1fr 1fr; } table { font-size:12px; } }
+</style>
+</head>
+<body>
+<nav>
+  <h1>🛡 Admin Dashboard</h1>
+  <div class="right">
+    <span>LinkReport Security</span>
+    <a href="/admin/sender">⚡ Batch Sender</a>
+    <a href="/">← Public site</a>
+    <a href="/admin/logout">Logout</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="stats">
+    <div class="stat-card accent"><div class="num">{{ total }}</div><div class="lbl">Total Reports</div></div>
+    <div class="stat-card warn"><div class="num">{{ new_count }}</div><div class="lbl">Awaiting Review</div></div>
+    <div class="stat-card ok"><div class="num">{{ total - new_count }}</div><div class="lbl">Reviewed</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="searchBox" placeholder="Search target, code, threat type…" oninput="filterTable()">
+    <select id="statusFilter" onchange="filterTable()">
+      <option value="">All statuses</option>
+      <option value="new">New</option>
+      <option value="reviewed">Reviewed</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
+
+  {% if reports %}
+  <table id="reportsTable">
+    <thead>
+      <tr>
+        <th>Confirmation</th>
+        <th>Target</th>
+        <th>Type</th>
+        <th>Threat</th>
+        <th>Reason</th>
+        <th>File</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in reports %}
+      <tr data-status="{{ r.status }}" data-search="{{ r.target|lower }} {{ r.confirm_code|lower }} {{ r.threat_type|lower }}">
+        <td class="code-cell">{{ r.confirm_code }}</td>
+        <td><div class="target-cell" title="{{ r.target }}">{{ r.target }}</div></td>
+        <td>{{ r.sub_type }}</td>
+        <td>{{ r.threat_type }}</td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ r.reason }}">{{ r.reason }}</td>
+        <td>
+          {% if r.filename %}
+            <a href="/uploads/{{ r.filename }}" target="_blank" class="file-link">📎 View</a>
+          {% else %}—{% endif %}
+        </td>
+        <td><span class="chip {{ r.status }}">{{ r.status }}</span></td>
+        <td style="white-space:nowrap;color:var(--text-muted)">{{ r.created_at[:16].replace('T',' ') }}</td>
+        <td>
+          <div class="actions">
+            {% if r.status != 'reviewed' %}
+            <form method="POST" action="/admin/reports/{{ r.id }}/status">
+              <input type="hidden" name="status" value="reviewed">
+              <button class="btn-sm ok" type="submit">✓ Review</button>
+            </form>
+            {% endif %}
+            {% if r.status != 'rejected' %}
+            <form method="POST" action="/admin/reports/{{ r.id }}/status">
+              <input type="hidden" name="status" value="rejected">
+              <button class="btn-sm" type="submit">✗ Reject</button>
+            </form>
+            {% endif %}
+            <form method="POST" action="/admin/reports/{{ r.id }}/delete" onsubmit="return confirm('Delete this report?')">
+              <button class="btn-sm danger" type="submit">🗑</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No reports yet.</div>
+  {% endif %}
+</div>
+
+<script>
+function filterTable() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const s = document.getElementById('statusFilter').value;
+  document.querySelectorAll('#reportsTable tbody tr').forEach(tr => {
+    const matchSearch = !q || tr.dataset.search.includes(q);
+    const matchStatus = !s || tr.dataset.status === s;
+    tr.style.display = (matchSearch && matchStatus) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batch Sender — LinkReport Admin</title>
+<style>
+  :root {
+    --bg:#060a0f; --surface:#0d1320; --surface2:#111827; --border:#1e2d42;
+    --accent:#0ea5e9; --text:#e2e8f0; --text-muted:#64748b;
+    --success:#22c55e; --error:#ef4444; --warning:#f59e0b; --radius:8px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,'Inter',system-ui,sans-serif; font-size:14px; min-height:100vh; }
+
+  nav { background:var(--surface); border-bottom:1px solid var(--border); padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between; }
+  nav .logo { font-size:16px; font-weight:700; }
+  nav .links { display:flex; gap:20px; }
+  nav .links a { color:var(--text-muted); text-decoration:none; font-size:13px; }
+  nav .links a:hover { color:var(--text); }
+
+  .layout { display:grid; grid-template-columns:420px 1fr; min-height:calc(100vh - 56px); }
+
+  .panel { padding:28px 24px; border-right:1px solid var(--border); overflow-y:auto; }
+  .panel h2 { font-size:16px; font-weight:700; margin-bottom:4px; }
+  .panel .sub { font-size:12px; color:var(--text-muted); margin-bottom:24px; }
+
+  .field { margin-bottom:18px; }
+  label { display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); margin-bottom:7px; }
+
+  select, input[type=text], input[type=password], textarea {
+    width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--radius); padding:9px 12px; font-size:14px; font-family:inherit;
+    transition:border-color .15s; appearance:none;
+  }
+  select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+  select:focus, input:focus, textarea:focus { outline:none; border-color:var(--accent); }
+  textarea { resize:vertical; min-height:120px; line-height:1.6; font-size:13px; }
+
+  .hint { font-size:11px; color:var(--text-muted); margin-top:5px; line-height:1.5; }
+
+  .file-area { border:2px dashed var(--border); border-radius:var(--radius); padding:18px; text-align:center; cursor:pointer; background:var(--surface2); position:relative; transition:border-color .15s; }
+  .file-area:hover { border-color:var(--accent); }
+  .file-area input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; }
+  .file-area p { font-size:12px; color:var(--text-muted); }
+  .file-area .chosen { font-size:13px; color:var(--success); margin-top:6px; }
+
+  .captcha-mode { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+  .mode-btn { background:var(--surface2); border:2px solid var(--border); border-radius:var(--radius); padding:12px 10px; text-align:center; cursor:pointer; transition:all .15s; }
+  .mode-btn.active { border-color:var(--accent); background:rgba(14,165,233,.08); }
+  .mode-btn .icon { font-size:20px; margin-bottom:5px; }
+  .mode-btn .title { font-size:12px; font-weight:700; }
+  .mode-btn .desc { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+  .twocaptcha-field { display:none; }
+  .twocaptcha-field.show { display:block; }
+
+  .submit-btn { width:100%; background:linear-gradient(135deg,#0ea5e9,#6366f1); color:#fff; border:none; border-radius:var(--radius); padding:12px; font-size:14px; font-weight:700; cursor:pointer; transition:opacity .15s; }
+  .submit-btn:hover { opacity:.9; }
+  .submit-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+  /* Progress */
+  .progress-wrap { display:none; margin-bottom:12px; }
+  .progress-bar { height:5px; background:var(--border); border-radius:5px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,#0ea5e9,#6366f1); border-radius:5px; transition:width .3s; }
+  .progress-text { font-size:12px; color:var(--text-muted); margin-top:6px; text-align:center; }
+
+  /* Results */
+  .results-panel { padding:28px 24px; overflow-y:auto; }
+  .results-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .results-header h2 { font-size:16px; font-weight:700; }
+
+  .summary { display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .summary-pill { padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+  .summary-pill.total   { background:rgba(14,165,233,.12); color:var(--accent); border:1px solid rgba(14,165,233,.2); }
+  .summary-pill.success { background:rgba(34,197,94,.12); color:var(--success); border:1px solid rgba(34,197,94,.2); }
+  .summary-pill.errors  { background:rgba(239,68,68,.12); color:var(--error); border:1px solid rgba(239,68,68,.2); }
+
+  .retry-all-btn { background:none; border:1px solid var(--border); color:var(--text-muted); border-radius:6px; padding:5px 14px; font-size:12px; cursor:pointer; transition:all .15s; }
+  .retry-all-btn:hover { border-color:var(--warning); color:var(--warning); }
+
+  .result-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:13px 15px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+  .result-item .target { flex:1; font-size:13px; font-weight:600; word-break:break-all; }
+  .result-item .code { font-family:monospace; font-size:13px; color:var(--success); white-space:nowrap; }
+  .result-item .err-msg { font-size:12px; color:var(--error); flex:1; }
+
+  .chip { display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; white-space:nowrap; }
+  .chip.submitted { background:rgba(34,197,94,.12); color:var(--success); border:1px solid rgba(34,197,94,.2); }
+  .chip.error     { background:rgba(239,68,68,.12);  color:var(--error);  border:1px solid rgba(239,68,68,.2); }
+  .chip.pending   { background:rgba(245,158,11,.12); color:var(--warning);border:1px solid rgba(245,158,11,.2); }
+
+  .retry-btn { background:none; border:1px solid var(--border); color:var(--text-muted); border-radius:6px; padding:3px 10px; font-size:11px; cursor:pointer; white-space:nowrap; transition:all .15s; }
+  .retry-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  .empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); font-size:13px; }
+
+  @media(max-width:800px) { .layout { grid-template-columns:1fr; } .panel { border-right:none; border-bottom:1px solid var(--border); } }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">🛡 LinkReport — Batch Sender</span>
+  <div class="links">
+    <a href="/">Public form</a>
+    <a href="/admin">Dashboard</a>
+    <a href="/admin/logout">Logout</a>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- ── LEFT: Form ── -->
+  <div class="panel">
+    <h2>Массовая отправка</h2>
+    <p class="sub">Каждая строка отправляется отдельно через публичную форму с автоматической капчей.</p>
+
+    <div class="field">
+      <label>Режим CAPTCHA</label>
+      <div class="captcha-mode">
+        <div class="mode-btn active" id="modeTest" onclick="setMode('test')">
+          <div class="icon">🔑</div>
+          <div class="title">Тестовые ключи</div>
+          <div class="desc">Автоматически, без API</div>
+        </div>
+        <div class="mode-btn" id="mode2cap" onclick="setMode('2captcha')">
+          <div class="icon">🤖</div>
+          <div class="title">2captcha</div>
+          <div class="desc">Для боевых reCAPTCHA</div>
+        </div>
+      </div>
+      <div class="twocaptcha-field" id="twocaptchaField">
+        <label>2captcha API Key</label>
+        <input type="password" id="twocaptchaKey" placeholder="Вставьте ключ 2captcha…" value="{{ twocaptcha_key }}">
+        <div class="hint">Используется только когда стоят боевые reCAPTCHA ключи.</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Тип цели</label>
+      <select id="subType">
+        <option value="">Выберите…</option>
+        <option value="Domain">Domain</option>
+        <option value="IP">IP Address</option>
+        <option value="URL">URL</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Цели — по одной на строку</label>
+      <textarea id="targets" placeholder="evil.com&#10;phishing-site.net&#10;192.168.1.100&#10;https://bad.example.com/page"></textarea>
+      <div class="hint" id="targetCount">0 целей</div>
+    </div>
+
+    <div class="field">
+      <label>Тип угрозы</label>
+      <select id="threatType">
+        <option value="">Выберите…</option>
+        <option value="Phishing">Phishing</option>
+        <option value="Malware">Malware</option>
+        <option value="Spam">Spam</option>
+        <option value="Botnet">Botnet</option>
+        <option value="Ransomware">Ransomware</option>
+        <option value="Scam">Scam / Fraud</option>
+        <option value="C2">C2 / Command & Control</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Причина</label>
+      <textarea id="reason" style="min-height:70px" placeholder="Описание угрозы…"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Файл-доказательство (опционально)</label>
+      <div class="file-area" id="fileDrop">
+        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf">
+        <p>📎 Перетащите или кликните — JPG, PNG, PDF до 2 МБ</p>
+        <div class="chosen" id="chosenFile"></div>
+      </div>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-text" id="progressText">Отправка…</div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="startSend()">Отправить все →</button>
+  </div>
+
+  <!-- ── RIGHT: Results ── -->
+  <div class="results-panel">
+    <div class="results-header">
+      <h2>Результаты</h2>
+      <button class="retry-all-btn" id="retryAllBtn" style="display:none" onclick="retryErrors()">↻ Повторить ошибки</button>
+    </div>
+
+    <div class="summary" id="summary" style="display:none">
+      <span class="summary-pill total"   id="sumTotal"></span>
+      <span class="summary-pill success" id="sumOk"></span>
+      <span class="summary-pill errors"  id="sumErr"></span>
+    </div>
+
+    <div id="resultsList">
+      <div class="empty-state">Результаты появятся здесь после отправки.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let captchaMode = 'test';
+let results = [];
+
+function setMode(m) {
+  captchaMode = m;
+  document.getElementById('modeTest').classList.toggle('active', m === 'test');
+  document.getElementById('mode2cap').classList.toggle('active', m === '2captcha');
+  document.getElementById('twocaptchaField').classList.toggle('show', m === '2captcha');
+}
+
+// Target counter
+document.getElementById('targets').addEventListener('input', function() {
+  const n = this.value.split('\n').filter(l => l.trim()).length;
+  document.getElementById('targetCount').textContent = n + ' ' + declension(n, 'цель', 'цели', 'целей');
+});
+
+function declension(n, f1, f2, f5) {
+  const v = Math.abs(n) % 100;
+  if (v > 10 && v < 20) return f5;
+  const v1 = v % 10;
+  if (v1 === 1) return f1;
+  if (v1 >= 2 && v1 <= 4) return f2;
+  return f5;
+}
+
+// File
+const fileDrop = document.getElementById('fileDrop');
+const fileInput = document.getElementById('fileInput');
+fileDrop.addEventListener('dragover', e => { e.preventDefault(); fileDrop.style.borderColor = 'var(--accent)'; });
+fileDrop.addEventListener('dragleave', () => fileDrop.style.borderColor = '');
+fileDrop.addEventListener('drop', e => {
+  e.preventDefault(); fileDrop.style.borderColor = '';
+  if (e.dataTransfer.files[0]) { fileInput.files = e.dataTransfer.files; updateFile(); }
+});
+fileInput.addEventListener('change', updateFile);
+function updateFile() {
+  document.getElementById('chosenFile').textContent = fileInput.files[0] ? '✓ ' + fileInput.files[0].name : '';
+}
+
+async function startSend() {
+  const subType    = document.getElementById('subType').value;
+  const targets    = document.getElementById('targets').value;
+  const threatType = document.getElementById('threatType').value;
+  const reason     = document.getElementById('reason').value;
+
+  if (!subType || !targets.trim() || !threatType || !reason.trim()) {
+    alert('Заполните все обязательные поля.'); return;
+  }
+
+  if (captchaMode === '2captcha' && !document.getElementById('twocaptchaKey').value.trim()) {
+    alert('Введите 2captcha API ключ.'); return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Отправка…';
+
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  progressWrap.style.display = 'block';
+  progressFill.style.width = '20%';
+
+  const fd = new FormData();
+  fd.append('sub_type',     subType);
+  fd.append('targets',      targets);
+  fd.append('threat_type',  threatType);
+  fd.append('reason',       reason);
+  fd.append('captcha_mode', captchaMode);
+  if (captchaMode === '2captcha') {
+    fd.append('twocaptcha_key', document.getElementById('twocaptchaKey').value.trim());
+  }
+  if (fileInput.files[0]) fd.append('file', fileInput.files[0]);
+
+  progressFill.style.width = '50%';
+  progressText.textContent = 'Отправляем запросы…';
+
+  try {
+    const res = await fetch('/api/send-form', { method: 'POST', body: fd });
+    progressFill.style.width = '90%';
+    const data = await res.json();
+
+    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
+
+    results = data.results;
+    renderResults();
+    progressFill.style.width = '100%';
+    progressText.textContent = 'Готово!';
+    setTimeout(() => { progressWrap.style.display = 'none'; progressFill.style.width = '0'; }, 1000);
+  } catch(e) {
+    alert('Ошибка сети: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Отправить все →';
+  }
+}
+
+async function retryErrors() {
+  const errors = results.filter(r => r.status === 'error');
+  if (!errors.length) return;
+
+  // Собираем их цели обратно в поле и шлём
+  document.getElementById('targets').value = errors.map(r => r.target).join('\n');
+  document.getElementById('targetCount').textContent = errors.length + ' целей (повтор)';
+
+  // Удаляем старые ошибки из списка
+  results = results.filter(r => r.status !== 'error');
+  renderResults();
+
+  await startSend();
+}
+
+function renderResults() {
+  const list = document.getElementById('resultsList');
+  const summary = document.getElementById('summary');
+
+  if (!results.length) {
+    list.innerHTML = '<div class="empty-state">Результатов нет.</div>';
+    summary.style.display = 'none';
+    document.getElementById('retryAllBtn').style.display = 'none';
+    return;
+  }
+
+  const ok  = results.filter(r => r.status === 'submitted').length;
+  const err = results.filter(r => r.status === 'error').length;
+
+  summary.style.display = 'flex';
+  document.getElementById('sumTotal').textContent = `Всего: ${results.length}`;
+  document.getElementById('sumOk').textContent    = `✓ Отправлено: ${ok}`;
+  document.getElementById('sumErr').textContent   = `✗ Ошибок: ${err}`;
+  document.getElementById('retryAllBtn').style.display = err ? '' : 'none';
+
+  list.innerHTML = results.map((r, i) => `
+    <div class="result-item" id="res-${i}">
+      <span class="chip ${r.status}">${r.status === 'submitted' ? '✓' : '✗'}</span>
+      <span class="target">${esc(r.target)}</span>
+      ${r.status === 'submitted'
+        ? `<span class="code">${esc(r.confirm_code || '—')}</span>`
+        : `<span class="err-msg">${esc(r.error || 'Неизвестная ошибка')}</span>`
+      }
+      ${r.status === 'error'
+        ? `<button class="retry-btn" onclick="retrySingle(${i})">↻ Повтор</button>`
+        : ''}
+    </div>
+  `).join('');
+}
+
+async function retrySingle(i) {
+  const r = results[i];
+  results[i] = { ...r, status: 'pending' };
+  renderResults();
+
+  const fd = new FormData();
+  fd.append('sub_type',     document.getElementById('subType').value);
+  fd.append('targets',      r.target);
+  fd.append('threat_type',  document.getElementById('threatType').value);
+  fd.append('reason',       document.getElementById('reason').value);
+  fd.append('captcha_mode', captchaMode);
+  if (captchaMode === '2captcha') {
+    fd.append('twocaptcha_key', document.getElementById('twocaptchaKey').value.trim());
+  }
+  if (fileInput.files[0]) fd.append('file', fileInput.files[0]);
+
+  try {
+    const res = await fetch('/api/send-form', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (res.ok && data.results?.[0]) {
+      results[i] = data.results[0];
+    } else {
+      results[i] = { ...r, status: 'error', error: data.error || 'Ошибка' };
+    }
+  } catch(e) {
+    results[i] = { ...r, status: 'error', error: e.message };
+  }
+  renderResults();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

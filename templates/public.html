@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link Threat Report — Submit a Report</title>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<style>
+  :root {
+    --bg: #060a0f;
+    --surface: #0d1320;
+    --surface2: #111827;
+    --border: #1e2d42;
+    --accent: #0ea5e9;
+    --accent2: #38bdf8;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --success: #22c55e;
+    --error: #ef4444;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Inter', system-ui, sans-serif; min-height: 100vh; }
+
+  /* Nav */
+  nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #0ea5e9, #6366f1); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-text { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -.3px; }
+  .logo-text span { color: var(--accent); }
+  .nav-links { display: flex; gap: 24px; }
+  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; transition: color .15s; }
+  .nav-links a:hover { color: var(--text); }
+
+  /* Hero */
+  .hero { text-align: center; padding: 64px 24px 48px; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(14,165,233,.1); border: 1px solid rgba(14,165,233,.2); color: var(--accent); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 500; margin-bottom: 20px; }
+  .hero h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: -.5px; margin-bottom: 14px; line-height: 1.15; }
+  .hero h1 span { background: linear-gradient(90deg, #0ea5e9, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { color: var(--text-muted); font-size: 16px; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+
+  /* Stats */
+  .stats { display: flex; justify-content: center; gap: 40px; padding: 0 24px 48px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 800; color: var(--accent); }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Form card */
+  .form-wrap { max-width: 640px; margin: 0 auto; padding: 0 24px 80px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
+  .card-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .card-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+
+  .flash-error { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; border-radius: var(--radius); padding: 10px 14px; font-size: 13px; margin-bottom: 20px; }
+
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 7px; }
+  .field label .req { color: var(--accent); margin-left: 2px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  select, input[type=text], textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius); padding: 10px 13px; font-size: 14px;
+    font-family: inherit; transition: border-color .15s, box-shadow .15s;
+    appearance: none; -webkit-appearance: none;
+  }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  select:focus, input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,165,233,.12); }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+  .file-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; transition: all .15s; background: var(--surface2); position: relative; }
+  .file-area:hover, .file-area.over { border-color: var(--accent); background: rgba(14,165,233,.05); }
+  .file-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .file-area .upload-icon { font-size: 28px; margin-bottom: 8px; }
+  .file-area p { font-size: 13px; color: var(--text-muted); }
+  .file-area p strong { color: var(--accent); }
+  .file-area .chosen { font-size: 13px; color: var(--success); margin-top: 8px; font-weight: 500; }
+
+  .captcha-wrap { display: flex; justify-content: center; margin: 8px 0 4px; }
+
+  .hint { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+  .submit-btn { width: 100%; background: linear-gradient(135deg, #0ea5e9, #6366f1); color: #fff; border: none; border-radius: var(--radius); padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .15s, transform .1s; margin-top: 4px; letter-spacing: .2px; }
+  .submit-btn:hover { opacity: .92; }
+  .submit-btn:active { transform: scale(.99); }
+
+  /* Info blocks */
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 640px; margin: 0 auto 40px; padding: 0 24px; }
+  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .info-card .ic { font-size: 22px; margin-bottom: 10px; }
+  .info-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+  .info-card p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  footer { border-top: 1px solid var(--border); padding: 24px 32px; text-align: center; color: var(--text-muted); font-size: 12px; }
+
+  @media (max-width: 540px) { .row2 { grid-template-columns: 1fr; } .info-grid { grid-template-columns: 1fr; } .stats { gap: 24px; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2Z" fill="white" opacity=".9"/></svg>
+    </div>
+    <span class="logo-text">Link<span>Report</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="#">About</a>
+    <a href="#">FAQ</a>
+    <a href="/admin">Admin</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">
+    <svg width="12" height="12" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0ea5e9"/><path d="M12 7v5l3 3" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+    24/7 Threat Intelligence
+  </div>
+  <h1>Report a <span>Malicious Link</span><br>or Threat</h1>
+  <p>Help protect the internet by submitting suspicious domains, IP addresses, and URLs for review by our security team.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">12,480+</div><div class="stat-label">Reports Processed</div></div>
+  <div class="stat"><div class="stat-num">48h</div><div class="stat-label">Avg. Review Time</div></div>
+  <div class="stat"><div class="stat-num">99.2%</div><div class="stat-label">Accuracy Rate</div></div>
+</div>
+
+<div class="info-grid">
+  <div class="info-card"><div class="ic">🔍</div><h3>Reviewed by Experts</h3><p>Every report is manually reviewed by our threat intelligence team.</p></div>
+  <div class="info-card"><div class="ic">🔒</div><h3>Confidential</h3><p>Your submission and identity are kept strictly confidential.</p></div>
+  <div class="info-card"><div class="ic">⚡</div><h3>Fast Response</h3><p>Critical threats are escalated and actioned within hours.</p></div>
+</div>
+
+<div class="form-wrap">
+  <div class="card">
+    <div class="card-title">Submit a Threat Report</div>
+    <div class="card-sub">All fields marked with * are required. Submissions are processed within 48 hours.</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash-error">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="/submit" enctype="multipart/form-data">
+
+      <div class="row2">
+        <div class="field">
+          <label>Submission Type <span class="req">*</span></label>
+          <select name="sub_type" required>
+            <option value="">Select type…</option>
+            <option value="Domain">Domain</option>
+            <option value="IP">IP Address</option>
+            <option value="URL">URL</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Threat Type <span class="req">*</span></label>
+          <select name="threat_type" required>
+            <option value="">Select threat…</option>
+            <option value="Phishing">Phishing</option>
+            <option value="Malware">Malware</option>
+            <option value="Spam">Spam</option>
+            <option value="Botnet">Botnet</option>
+            <option value="Ransomware">Ransomware</option>
+            <option value="Scam">Scam / Fraud</option>
+            <option value="C2">C2 / Command & Control</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Target (Domain / IP / URL) <span class="req">*</span></label>
+        <input type="text" name="target" placeholder="e.g. evil-site.com or https://phish.example.com/page" required>
+        <div class="hint">Enter one domain, IP address, or full URL.</div>
+      </div>
+
+      <div class="field">
+        <label>Reason / Description <span class="req">*</span></label>
+        <textarea name="reason" placeholder="Describe why this target is malicious. Include any observed behaviour, indicators, or context…" required></textarea>
+      </div>
+
+      <div class="field">
+        <label>Evidence File <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+        <div class="file-area" id="fileDrop">
+          <input type="file" name="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf">
+          <div class="upload-icon">📎</div>
+          <p><strong>Click to upload</strong> or drag and drop</p>
+          <p>JPG, PNG or PDF — max 2 MB</p>
+          <div class="chosen" id="chosenFile"></div>
+        </div>
+      </div>
+
+      <div class="captcha-wrap">
+        <div class="g-recaptcha" data-sitekey="{{ site_key }}" data-theme="dark"></div>
+      </div>
+
+      <button type="submit" class="submit-btn">Submit Report →</button>
+    </form>
+  </div>
+</div>
+
+<footer>
+  © 2024 LinkReport Security. All submissions are confidential and used solely for threat intelligence purposes.
+</footer>
+
+<script>
+const fileDrop = document.getElementById('fileDrop');
+const fileInput = document.getElementById('fileInput');
+const chosenFile = document.getElementById('chosenFile');
+
+fileDrop.addEventListener('dragover', e => { e.preventDefault(); fileDrop.classList.add('over'); });
+fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('over'));
+fileDrop.addEventListener('drop', e => {
+  e.preventDefault(); fileDrop.classList.remove('over');
+  if (e.dataTransfer.files[0]) { fileInput.files = e.dataTransfer.files; updateFile(); }
+});
+fileInput.addEventListener('change', updateFile);
+function updateFile() {
+  chosenFile.textContent = fileInput.files[0] ? '✓ ' + fileInput.files[0].name : '';
+}
+</script>
+</body>
+</html>
