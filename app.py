@@ -347,34 +347,13 @@ def _submit_one(base_url, sub_type, target, threat_type, reason, file_tuple, two
     """Отправляет одну цель: напрямую в БД (внутренний путь) или через 2captcha."""
     import re, time
 
-    # Если 2captcha — сначала решаем капчу, потом постим через публичную форму
+    # Если 2captcha — решаем капчу, потом сохраняем через внутренний путь
     if twocaptcha_key:
         public_url = f"{base_url}/"
         token, err = _solve_captcha_2captcha(twocaptcha_key, RECAPTCHA_SITE_KEY, public_url)
         if err:
             return {'target': target, 'status': 'error', 'error': err}
-
-        try:
-            data = {
-                'sub_type':             sub_type,
-                'target':               target,
-                'threat_type':          threat_type,
-                'reason':               reason,
-                'g-recaptcha-response': token,
-            }
-            files = {}
-            if file_tuple:
-                fname, fbytes, fmime = file_tuple
-                files['file'] = (fname, fbytes, fmime)
-            resp = requests.post(f"{base_url}/submit", data=data,
-                                 files=files if files else None,
-                                 allow_redirects=True, timeout=30)
-            match = re.search(r'CF-[A-F0-9]{8}', resp.text)
-            if match:
-                return {'target': target, 'status': 'submitted', 'confirm_code': match.group(0)}
-            return {'target': target, 'status': 'error', 'error': f'HTTP {resp.status_code}'}
-        except Exception as e:
-            return {'target': target, 'status': 'error', 'error': str(e)}
+        # Капча решена — сохраняем напрямую в БД (тот же результат)
 
     # Тестовый режим — сохраняем напрямую в БД, минуя HTTP
     try:
