@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ru">
+<html lang="uk">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Вход — Form Sender</title>
+  <title>Вхід — Form Sender</title>
   <style>
     :root { --bg:#08111f; --panel:#101d31; --field:#172942; --line:#2a4162; --text:#eff6ff; --muted:#9bb0ca; --accent:#48a7ff; --bad:#ff7b86; }
     * { box-sizing:border-box; }
@@ -21,12 +21,12 @@
 <body>
   <main class="card">
     <h1>🛡 Form Sender</h1>
-    <p>Войдите, чтобы открыть инструмент массовой отправки.</p>
+    <p>Увійдіть, щоб відкрити інструмент масової відправки.</p>
     {% if error %}<div class="error">{{ error }}</div>{% endif %}
     <form method="post">
       <label for="password">Пароль оператора</label>
       <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
-      <button type="submit">Войти</button>
+      <button type="submit">Увійти</button>
     </form>
   </main>
 </body>

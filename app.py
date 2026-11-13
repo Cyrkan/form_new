@@ -94,7 +94,7 @@ def admin_required(view):
     def wrapped(*args, **kwargs):
         if not session.get("admin"):
             if request.path.startswith("/api/"):
-                return jsonify({"error": "Требуется вход в админ-панель"}), 401
+                return jsonify({"error": "Потрібно увійти в адмін-панель"}), 401
             return redirect(url_for("admin_login"))
         return view(*args, **kwargs)
 
@@ -108,11 +108,11 @@ def allowed_file(filename: str) -> bool:
 def parse_targets(raw: str) -> list[str]:
     targets = [line.strip() for line in raw.splitlines() if line.strip()]
     if not targets:
-        raise ValueError("Список целей пуст")
+        raise ValueError("Список цілей порожній")
     if len(targets) > MAX_TARGETS:
-        raise ValueError(f"За один запуск можно отправить не более {MAX_TARGETS} целей")
+        raise ValueError(f"За один запуск можна відправити не більше {MAX_TARGETS} цілей")
     if any(len(target) > 2000 for target in targets):
-        raise ValueError("Одна из целей длиннее 2000 символов")
+        raise ValueError("Одна з цілей довша за 2000 символів")
     return targets
 
 
@@ -120,10 +120,10 @@ def read_upload(file_storage):
     if not file_storage or not file_storage.filename:
         return None
     if not allowed_file(file_storage.filename):
-        raise ValueError("Допустимые форматы файла: JPG, JPEG, PNG или PDF")
+        raise ValueError("Дозволені формати файлу: JPG, JPEG, PNG або PDF")
     payload = file_storage.read(MAX_UPLOAD_BYTES + 1)
     if len(payload) > MAX_UPLOAD_BYTES:
-        raise ValueError("Размер файла не должен превышать 2 МБ")
+        raise ValueError("Розмір файлу не повинен перевищувати 2 МБ")
     safe_name = secure_filename(file_storage.filename) or "attachment"
     mime = file_storage.mimetype or mimetypes.guess_type(safe_name)[0] or "application/octet-stream"
     return {"name": safe_name, "bytes": payload, "mime": mime}
@@ -143,7 +143,7 @@ def load_upload(filename: str | None):
         return None
     path = UPLOAD_DIR / filename
     if not path.is_file():
-        raise FileNotFoundError("Сохранённый файл-вложение не найден")
+        raise FileNotFoundError("Збережений файл-вкладення не знайдено")
     payload = path.read_bytes()
     return {
         "name": filename.split("_", 1)[-1],
@@ -160,7 +160,7 @@ def fetch_form_metadata(http: requests.Session) -> tuple[str, str, dict[str, str
     if form is None:
         form = soup.find("form")
     if form is None:
-        raise RuntimeError("На странице не найдена форма отправки")
+        raise RuntimeError("На сторінці не знайдено форму відправки")
 
     form_action = urljoin(response.url, form.get("action") or response.url)
     hidden = {}
@@ -172,13 +172,13 @@ def fetch_form_metadata(http: requests.Session) -> tuple[str, str, dict[str, str
     )
     site_key = captcha.get("data-sitekey", "").strip() if captcha else ""
     if not site_key:
-        raise RuntimeError("На странице не найден ключ reCAPTCHA")
+        raise RuntimeError("На сторінці не знайдено ключ reCAPTCHA")
     return response.url, form_action, {"hidden": hidden, "site_key": site_key}
 
 
 def solve_recaptcha(site_key: str, page_url: str) -> str:
     if not TWOCAPTCHA_API_KEY:
-        raise RuntimeError("Не задан TWOCAPTCHA_API_KEY")
+        raise RuntimeError("Не задано TWOCAPTCHA_API_KEY")
 
     try:
         create_response = requests.post(
@@ -195,12 +195,12 @@ def solve_recaptcha(site_key: str, page_url: str) -> str:
         create_response.raise_for_status()
         created = create_response.json()
     except requests.RequestException as exc:
-        raise RuntimeError(f"Не удалось создать задачу 2Captcha: {exc}") from exc
+        raise RuntimeError(f"Не вдалося створити задачу 2Captcha: {exc}") from exc
     except ValueError as exc:
-        raise RuntimeError("2Captcha вернула некорректный ответ при создании задачи") from exc
+        raise RuntimeError("2Captcha повернула некоректну відповідь під час створення задачі") from exc
 
     if created.get("status") != 1:
-        raise RuntimeError(f"2Captcha: {created.get('request', 'неизвестная ошибка')}")
+        raise RuntimeError(f"2Captcha: {created.get('request', 'невідома помилка')}")
 
     task_id = created["request"]
     deadline = time.monotonic() + CAPTCHA_TIMEOUT_SECONDS
@@ -220,16 +220,16 @@ def solve_recaptcha(site_key: str, page_url: str) -> str:
             result_response.raise_for_status()
             result = result_response.json()
         except requests.RequestException as exc:
-            raise RuntimeError(f"Ошибка проверки результата 2Captcha: {exc}") from exc
+            raise RuntimeError(f"Помилка перевірки результату 2Captcha: {exc}") from exc
         except ValueError as exc:
-            raise RuntimeError("2Captcha вернула некорректный ответ при проверке") from exc
+            raise RuntimeError("2Captcha повернула некоректну відповідь під час перевірки") from exc
 
         if result.get("status") == 1:
             return result["request"]
         if result.get("request") != "CAPCHA_NOT_READY":
-            raise RuntimeError(f"2Captcha: {result.get('request', 'неизвестная ошибка')}")
+            raise RuntimeError(f"2Captcha: {result.get('request', 'невідома помилка')}")
 
-    raise RuntimeError(f"2Captcha не решила CAPTCHA за {CAPTCHA_TIMEOUT_SECONDS} секунд")
+    raise RuntimeError(f"2Captcha не вирішила капчу за {CAPTCHA_TIMEOUT_SECONDS} секунд")
 
 
 def extract_confirmation_code(html: str) -> str | None:
@@ -246,8 +246,8 @@ def extract_remote_error(html: str, status_code: int) -> str:
             if text and text not in messages:
                 messages.append(text)
     if messages:
-        return "Сайт отклонил отправку: " + " | ".join(messages[:3])
-    return f"Сайт вернул HTTP {status_code}, код подтверждения не найден"
+        return "Сайт відхилив відправку: " + " | ".join(messages[:3])
+    return f"Сайт повернув HTTP {status_code}, код підтвердження не знайдено"
 
 
 def submit_one(target: str, submission_type: str, threat_type: str, reason: str, upload):
@@ -350,8 +350,8 @@ def process_submission(row: sqlite3.Row) -> None:
 @app.errorhandler(RequestEntityTooLarge)
 def request_too_large(_error):
     if request.path.startswith("/api/"):
-        return jsonify({"error": "Размер запроса слишком большой; файл должен быть до 2 МБ"}), 413
-    return "Размер запроса слишком большой", 413
+        return jsonify({"error": "Розмір запиту завеликий; файл має бути до 2 МБ"}), 413
+    return "Розмір запиту завеликий", 413
 
 
 @app.route("/healthz")
@@ -372,7 +372,7 @@ def admin_login():
             session.clear()
             session["admin"] = True
             return redirect(url_for("sender_page"))
-        return render_template("admin_login.html", error="Неверный пароль"), 401
+        return render_template("admin_login.html", error="Неправильний пароль"), 401
     return render_template("admin_login.html")
 
 
@@ -410,20 +410,20 @@ def admin_dashboard():
 @admin_required
 def api_send():
     if not TWOCAPTCHA_API_KEY:
-        return jsonify({"error": "На сервере не задан TWOCAPTCHA_API_KEY"}), 503
+        return jsonify({"error": "На сервері не задано TWOCAPTCHA_API_KEY"}), 503
 
     submission_type = request.form.get("sub_type", "").strip()
     threat_type = request.form.get("threat_type", "").strip()
     reason = request.form.get("reason", "").strip()
     try:
         if submission_type not in TARGET_FIELD_BY_TYPE:
-            raise ValueError("Выберите Submission Type: Domain, IP или URL")
+            raise ValueError("Виберіть тип цілі: Domain, IP або URL")
         if not threat_type:
-            raise ValueError("Выберите Threat Type")
+            raise ValueError("Виберіть тип загрози")
         if not reason:
-            raise ValueError("Поле Reason обязательно")
+            raise ValueError("Поле причини є обов’язковим")
         if len(reason) > 2000:
-            raise ValueError("Reason не должен быть длиннее 2000 символов")
+            raise ValueError("Причина не повинна бути довшою за 2000 символів")
         targets = parse_targets(request.form.get("targets", ""))
         upload = read_upload(request.files.get("file"))
     except ValueError as exc:
@@ -476,13 +476,13 @@ def api_send():
 @admin_required
 def api_retry():
     if not TWOCAPTCHA_API_KEY:
-        return jsonify({"error": "На сервере не задан TWOCAPTCHA_API_KEY"}), 503
+        return jsonify({"error": "На сервері не задано TWOCAPTCHA_API_KEY"}), 503
     payload = request.get_json(silent=True) or {}
     ids = payload.get("ids")
     if not isinstance(ids, list) or not ids:
-        return jsonify({"error": "Не выбраны строки для повтора"}), 400
+        return jsonify({"error": "Не вибрано рядків для повтору"}), 400
     if len(ids) > MAX_TARGETS:
-        return jsonify({"error": f"За один запуск можно повторить не более {MAX_TARGETS} строк"}), 400
+        return jsonify({"error": f"За один запуск можна повторити не більше {MAX_TARGETS} рядків"}), 400
 
     conn = get_db()
     placeholders = ",".join("?" for _ in ids)
@@ -492,7 +492,7 @@ def api_retry():
     ).fetchall()
     conn.close()
     if not rows:
-        return jsonify({"error": "Не найдено строк со статусом error"}), 400
+        return jsonify({"error": "Не знайдено рядків зі статусом помилки"}), 400
 
     for index, row in enumerate(rows):
         process_submission(row)

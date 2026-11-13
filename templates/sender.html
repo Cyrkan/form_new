@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ru">
+<html lang="uk">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Form Sender</title>
+  <title>Form Sender — масова відправка</title>
   <style>
     :root { --bg:#08111f; --panel:#101d31; --field:#172942; --line:#2a4162; --text:#eff6ff; --muted:#9bb0ca; --accent:#48a7ff; --ok:#42d392; --bad:#ff7b86; --warn:#f6c453; }
     * { box-sizing:border-box; }
@@ -61,23 +61,23 @@
 <body>
   <nav>
     <div class="brand">🛡 Form Sender</div>
-    <div><a href="/admin">История</a><a href="/admin/logout">Выйти</a></div>
+    <div><a href="/admin">Історія</a><a href="/admin/logout">Вийти</a></div>
   </nav>
 
   <main class="wrap">
     <section class="intro">
-      <h1>Массовая отправка формы</h1>
-      <p>Каждая строка отправляется отдельной заявкой на <span id="remoteUrl">{{ form_url }}</span>.</p>
+      <h1>Масова відправка форми</h1>
+      <p>Кожен рядок відправляється окремою заявкою на <span id="remoteUrl">{{ form_url }}</span>.</p>
     </section>
 
     <div class="layout">
       <section class="card">
-        <h2>Параметры отправки</h2>
+        <h2>Параметри відправки</h2>
         <form id="sendForm">
           <div class="field">
             <label for="subType">Submission Type</label>
             <select id="subType" name="sub_type" required>
-              <option value="">Выберите тип…</option>
+              <option value="">Виберіть тип…</option>
               <option value="Domain">Domain</option>
               <option value="IP">IP</option>
               <option value="URL">URL</option>
@@ -85,15 +85,15 @@
           </div>
 
           <div class="field">
-            <label for="targets">Цели — по одной на строку</label>
+            <label for="targets">Цілі — по одній у рядку</label>
             <textarea id="targets" name="targets" placeholder="example.com&#10;another.example.com"></textarea>
-            <div class="hint" id="targetCount">0 целей · максимум {{ max_targets }}</div>
+            <div class="hint" id="targetCount">0 цілей · максимум {{ max_targets }}</div>
           </div>
 
           <div class="field">
-            <label for="threatType">Threat Type</label>
+            <label for="threatType">Тип загрози</label>
             <select id="threatType" name="threat_type" required>
-              <option value="">Выберите тип угрозы…</option>
+              <option value="">Виберіть тип загрози…</option>
               <option>Spam</option>
               <option>Phishing</option>
               <option>Malware</option>
@@ -104,33 +104,33 @@
           </div>
 
           <div class="field">
-            <label for="reason">Reason</label>
-            <textarea id="reason" name="reason" maxlength="2000" placeholder="Reason for submission"></textarea>
-            <div class="hint">До 2000 символов.</div>
+            <label for="reason">Причина</label>
+            <textarea id="reason" name="reason" maxlength="2000" placeholder="Причина відправки"></textarea>
+            <div class="hint">До 2000 символів.</div>
           </div>
 
           <div class="field">
-            <label for="file">Attachment</label>
+            <label for="file">Вкладення</label>
             <div class="file">
               <input id="file" name="file" type="file" accept=".jpg,.jpeg,.png,.pdf">
-              <small>JPG, JPEG, PNG или PDF, до 2 МБ. Файл будет приложен к каждой строке.</small>
+              <small>JPG, JPEG, PNG або PDF, до 2 МБ. Файл буде додано до кожного рядка.</small>
             </div>
           </div>
 
-          <button class="primary" id="sendButton" type="submit">Отправить все</button>
-          <div class="note">CAPTCHA решается через 2Captcha. Отправка идёт последовательно, по одной цели, с паузой между заявками.</div>
+          <button class="primary" id="sendButton" type="submit">Відправити все</button>
+          <div class="note">Капча вирішується через 2Captcha. Відправка йде послідовно, по одній цілі, з паузою між заявками.</div>
         </form>
       </section>
 
       <section class="card">
         <div class="results-head">
-          <h2>Результаты</h2>
-          <button class="secondary hidden" id="retryAll" type="button">Повторить ошибки</button>
+          <h2>Результати</h2>
+          <button class="secondary hidden" id="retryAll" type="button">Повторити помилки</button>
         </div>
         <div class="summary hidden" id="summary">
           <span class="pill" id="sumTotal"></span><span class="pill ok" id="sumOk"></span><span class="pill bad" id="sumErrors"></span>
         </div>
-        <div id="results"><div class="empty">Результаты появятся здесь после отправки.</div></div>
+        <div id="results"><div class="empty">Результати з’являться тут після відправки.</div></div>
       </section>
     </div>
   </main>
@@ -145,7 +145,7 @@
 
     function countTargets() {
       const count = targetsInput.value.split('\n').filter(line => line.trim()).length;
-      document.getElementById('targetCount').textContent = `${count} целей · максимум ${maxTargets}`;
+      document.getElementById('targetCount').textContent = `${count} цілей · максимум ${maxTargets}`;
     }
     targetsInput.addEventListener('input', countTargets);
 
@@ -156,7 +156,7 @@
     function drawResults() {
       const box = document.getElementById('results');
       if (!results.length) {
-        box.innerHTML = '<div class="empty">Результаты появятся здесь после отправки.</div>';
+        box.innerHTML = '<div class="empty">Результати з’являться тут після відправки.</div>';
         document.getElementById('summary').classList.add('hidden');
         document.getElementById('retryAll').classList.add('hidden');
         return;
@@ -164,18 +164,18 @@
       const ok = results.filter(item => item.status === 'submitted').length;
       const errors = results.filter(item => item.status === 'error').length;
       document.getElementById('summary').classList.remove('hidden');
-      document.getElementById('sumTotal').textContent = `Всего: ${results.length}`;
-      document.getElementById('sumOk').textContent = `Отправлено: ${ok}`;
-      document.getElementById('sumErrors').textContent = `Ошибки: ${errors}`;
+      document.getElementById('sumTotal').textContent = `Всього: ${results.length}`;
+      document.getElementById('sumOk').textContent = `Відправлено: ${ok}`;
+      document.getElementById('sumErrors').textContent = `Помилки: ${errors}`;
       document.getElementById('retryAll').classList.toggle('hidden', errors === 0);
       box.innerHTML = results.map(item => {
         const status = item.status === 'submitted' ? 'submitted' : item.status === 'error' ? 'error' : 'pending';
-        const label = status === 'submitted' ? 'отправлено' : status === 'error' ? 'ошибка' : 'ожидание';
+        const label = status === 'submitted' ? 'відправлено' : status === 'error' ? 'помилка' : 'очікування';
         const detail = status === 'submitted'
           ? `<div class="code">${escapeHtml(item.confirm_code)}</div>`
-          : `<div class="error">${escapeHtml(item.error || 'Неизвестная ошибка')}</div>`;
-        const retry = status === 'error' ? `<button class="retry-one" type="button" data-retry="${escapeHtml(item.id)}">Повторить</button>` : '';
-        return `<article class="result"><div><div class="target">${escapeHtml(item.target)}</div><div class="meta">Попытка: ${item.attempt}</div></div><span class="status ${status}">${label}</span><div>${detail}</div>${retry}</article>`;
+          : `<div class="error">${escapeHtml(item.error || 'Невідома помилка')}</div>`;
+        const retry = status === 'error' ? `<button class="retry-one" type="button" data-retry="${escapeHtml(item.id)}">Повторити</button>` : '';
+        return `<article class="result"><div><div class="target">${escapeHtml(item.target)}</div><div class="meta">Спроба: ${item.attempt}</div></div><span class="status ${status}">${label}</span><div>${detail}</div>${retry}</article>`;
       }).join('');
       box.querySelectorAll('[data-retry]').forEach(button => button.addEventListener('click', () => retry([button.dataset.retry])));
     }
@@ -190,12 +190,12 @@
     form.addEventListener('submit', async event => {
       event.preventDefault();
       const file = fileInput.files[0];
-      if (file && file.size > 2 * 1024 * 1024) { alert('Файл не должен превышать 2 МБ.'); return; }
+      if (file && file.size > 2 * 1024 * 1024) { alert('Файл не повинен перевищувати 2 МБ.'); return; }
       const count = targetsInput.value.split('\n').filter(line => line.trim()).length;
-      if (!count) { alert('Введите хотя бы одну цель.'); return; }
-      if (count > maxTargets) { alert(`Максимум ${maxTargets} целей за запуск.`); return; }
+      if (!count) { alert('Введіть хоча б одну ціль.'); return; }
+      if (count > maxTargets) { alert(`Максимум ${maxTargets} цілей за запуск.`); return; }
       sendButton.disabled = true;
-      sendButton.textContent = 'Отправка… не закрывайте страницу';
+      sendButton.textContent = 'Відправка… не закривайте сторінку';
       try {
         const data = await api('/api/send', { method:'POST', body:new FormData(form) });
         results = data.results || [];
@@ -204,7 +204,7 @@
         alert(error.message);
       } finally {
         sendButton.disabled = false;
-        sendButton.textContent = 'Отправить все';
+        sendButton.textContent = 'Відправити все';
       }
     });
 

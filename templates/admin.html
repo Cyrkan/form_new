@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ru">
+<html lang="uk">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>История — Form Sender</title>
+  <title>Історія — Form Sender</title>
   <style>
     :root { --bg:#08111f; --panel:#101d31; --field:#172942; --line:#2a4162; --text:#eff6ff; --muted:#9bb0ca; --accent:#48a7ff; --ok:#42d392; --bad:#ff7b86; }
     * { box-sizing:border-box; }
@@ -35,25 +35,25 @@
   </style>
 </head>
 <body>
-  <nav><strong>🛡 Form Sender</strong><div><a href="/admin/sender">Новая отправка</a><a href="/admin/logout">Выйти</a></div></nav>
+  <nav><strong>🛡 Form Sender</strong><div><a href="/admin/sender">Нова відправка</a><a href="/admin/logout">Вийти</a></div></nav>
   <main class="wrap">
-    <h1>История отправок</h1>
-    <p class="sub">Последние 200 строк, включая повторные попытки.</p>
+    <h1>Історія відправок</h1>
+    <p class="sub">Останні 200 рядків, включно з повторними спробами.</p>
     <div class="stats">
-      <div class="stat"><strong>{{ total }}</strong><span>Всего строк</span></div>
-      <div class="stat"><strong style="color:var(--ok)">{{ submitted }}</strong><span>Успешно отправлено</span></div>
-      <div class="stat"><strong style="color:var(--bad)">{{ errors }}</strong><span>Ошибок</span></div>
+      <div class="stat"><strong>{{ total }}</strong><span>Всього рядків</span></div>
+      <div class="stat"><strong style="color:var(--ok)">{{ submitted }}</strong><span>Успішно відправлено</span></div>
+      <div class="stat"><strong style="color:var(--bad)">{{ errors }}</strong><span>Помилок</span></div>
     </div>
     <div class="table-wrap">
       {% if reports %}
       <table>
-        <thead><tr><th>Цель</th><th>Тип</th><th>Статус</th><th>Код</th><th>Ошибка</th><th>Попытки</th><th>Дата</th></tr></thead>
+        <thead><tr><th>Ціль</th><th>Тип</th><th>Статус</th><th>Код</th><th>Помилка</th><th>Спроби</th><th>Дата</th></tr></thead>
         <tbody>
           {% for row in reports %}
           <tr>
             <td class="target">{{ row.target }}</td>
             <td>{{ row.submission_type }}</td>
-            <td class="status {{ row.status }}">{{ row.status }}</td>
+            <td class="status {{ row.status }}">{% if row.status == 'submitted' %}відправлено{% elif row.status == 'error' %}помилка{% else %}очікування{% endif %}</td>
             <td class="code">{{ row.confirm_code or '—' }}</td>
             <td class="error">{{ row.error or '—' }}</td>
             <td>{{ row.attempt }}</td>
@@ -62,7 +62,7 @@
           {% endfor %}
         </tbody>
       </table>
-      {% else %}<div class="empty">История пока пуста.</div>{% endif %}
+      {% else %}<div class="empty">Історія поки порожня.</div>{% endif %}
     </div>
   </main>
 </body>
