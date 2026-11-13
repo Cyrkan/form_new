@@ -19,7 +19,7 @@ RECAPTCHA_SITE_KEY   = os.environ.get('RECAPTCHA_SITE_KEY',   '6LeIxAcTAAAAAJcZV
 RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMXnXqRwqH2DmFEt')
 
 ADMIN_PASSWORD      = os.environ.get('ADMIN_PASSWORD', 'admin123')
-TWOCAPTCHA_API_KEY  = os.environ.get('TWOCAPTCHA_API_KEY', '1caffc0649c017d4be19d81bc51792ec')
+TWOCAPTCHA_API_KEY  = os.environ.get('TWOCAPTCHA_API_KEY', '')
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'pdf'}
 DB_PATH = 'data/reports.db'
